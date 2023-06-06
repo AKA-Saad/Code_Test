@@ -33,262 +33,279 @@ class BookingController extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function index(Request $request)
+
+
+    //  Refactor suggestions by Saad
+
+    public function index(RequestValidator $request)
     {
-        if($user_id = $request->get('user_id')) {
+        if ($user_id = $request->get('user_id')) {
 
             $response = $this->repository->getUsersJobs($user_id);
-
         }
-        elseif($request->__authenticatedUser->user_type == env('ADMIN_ROLE_ID') || $request->__authenticatedUser->user_type == env('SUPERADMIN_ROLE_ID'))
-        {
+        // It is always better to use config rather than direct env parameters
+
+        elseif ($request->__authenticatedUser->user_type == config('USER.ADMIN_ROLE_ID') || $request->__authenticatedUser->user_type == config('USER.SUPERADMIN_ROLE_ID')) {
             $response = $this->repository->getAll($request);
+        } else {
+            $response = 'Not matched to any criteria';
         }
 
         return response($response);
     }
 
+    // End Refactor suggestions   
+
     /**
      * @param $id
      * @return mixed
      */
+
+    //  Refactore Code here
+
     public function show($id)
     {
         $job = $this->repository->with('translatorJobRel.user')->find($id);
-
         return response($job);
     }
 
+    // End here
     /**
      * @param Request $request
      * @return mixed
      */
-    public function store(Request $request)
+
+    //  Refactor code here
+    public function store(StoreRequestValidator $request)
     {
-        $data = $request->all();
 
-        $response = $this->repository->store($request->__authenticatedUser, $data);
-
+        $response = $this->repository->store($request->all());
         return response($response);
-
     }
+    // End here
+
+
 
     /**
      * @param $id
      * @param Request $request
      * @return mixed
      */
-    public function update($id, Request $request)
-    {
-        $data = $request->all();
-        $cuser = $request->__authenticatedUser;
-        $response = $this->repository->updateJob($id, array_except($data, ['_token', 'submit']), $cuser);
 
+
+    //  Refactore code here
+    public function update($id, UpdateRequestValidator $request)
+    {
+
+        // Skinny Controller code is always better
+        // Replace array_except() Function: Instead of using array_except(), consider using the Arr::except() helper function provided by Laravel. This provides a cleaner and more readable way to exclude specific elements from an array.
+        $response = $this->repository->updateJob($id, Arr::except($request->all(), ['_token', 'submit']), $request->__authenticatedUser);
         return response($response);
     }
+    // End refactor code here
+
+
 
     /**
      * @param Request $request
      * @return mixed
      */
-    public function immediateJobEmail(Request $request)
+
+    //  Refactor here
+    public function immediateJobEmail(EmailRequestValidator $request)
     {
-        $adminSenderEmail = config('app.adminemail');
-        $data = $request->all();
 
-        $response = $this->repository->storeJobEmail($data);
-
+        $response = $this->repository->storeJobEmail($request->all());
         return response($response);
     }
+    // End here
+
 
     /**
      * @param Request $request
      * @return mixed
      */
-    public function getHistory(Request $request)
+
+
+    //  Refactor code here
+
+    public function getHistory(HistoryRequestValidator $request)
     {
-        if($user_id = $request->get('user_id')) {
-
-            $response = $this->repository->getUsersJobsHistory($user_id, $request);
-            return response($response);
-        }
-
-        return null;
+        // Validation request will do eveything for you
+        // There is no need to send a request parameter as well as Whole request parameter at the same time. Just Send request all data
+        $response = $this->repository->getUsersJobsHistory($request->all());
+        return response($response);
     }
+
+    // End refactor code 
 
     /**
      * @param Request $request
      * @return mixed
      */
-    public function acceptJob(Request $request)
+
+
+    //  Refactor code here
+    public function acceptJob(RequestValidator $request)
     {
-        $data = $request->all();
-        $user = $request->__authenticatedUser;
+        $response = $this->repository->acceptJob($request->all());
+        return response($response);
+    }
+    // End here
 
-        $response = $this->repository->acceptJob($data, $user);
 
+
+
+    // Refactor code here
+
+    public function acceptJobWithId(RequestValidator $request)
+    {
+        $response = $this->repository->acceptJobWithId($request->get('job_id'), $request->__authenticatedUser);
         return response($response);
     }
 
-    public function acceptJobWithId(Request $request)
-    {
-        $data = $request->get('job_id');
-        $user = $request->__authenticatedUser;
 
-        $response = $this->repository->acceptJobWithId($data, $user);
+    // End here
 
-        return response($response);
-    }
+
 
     /**
      * @param Request $request
      * @return mixed
      */
-    public function cancelJob(Request $request)
+
+    //  Refactor code here
+
+    public function cancelJob(CancelRequestValidator $request)
     {
-        $data = $request->all();
-        $user = $request->__authenticatedUser;
 
-        $response = $this->repository->cancelJobAjax($data, $user);
-
+        $response = $this->repository->cancelJobAjax($request->all());
         return response($response);
     }
+
+    // End here
 
     /**
      * @param Request $request
      * @return mixed
      */
-    public function endJob(Request $request)
+
+    //  Refactor code here
+
+    public function endJob(RequestValidator $request)
     {
-        $data = $request->all();
-
-        $response = $this->repository->endJob($data);
-
+        $response = $this->repository->endJob($request->all());
         return response($response);
-
     }
 
-    public function customerNotCall(Request $request)
+    //  End here
+
+
+
+
+
+
+
+    // Refactor code here
+    public function customerNotCall(RequestValidator $request)
     {
-        $data = $request->all();
-
-        $response = $this->repository->customerNotCall($data);
-
+        $response = $this->repository->customerNotCall($request->all());
         return response($response);
-
     }
+    // End here
+
 
     /**
      * @param Request $request
      * @return mixed
      */
-    public function getPotentialJobs(Request $request)
+
+    //  Refactor code here
+
+    public function getPotentialJobs(RequestVAidation $request)
     {
-        $data = $request->all();
-        $user = $request->__authenticatedUser;
-
-        $response = $this->repository->getPotentialJobs($user);
-
+        $response = $this->repository->getPotentialJobs($request->__authenticatedUser);
         return response($response);
     }
 
-    public function distanceFeed(Request $request)
+    // End here
+
+
+
+    // Refactore code here
+
+    public function distanceFeed(DistanceRequestValidator $request)
     {
         $data = $request->all();
 
-        if (isset($data['distance']) && $data['distance'] != "") {
-            $distance = $data['distance'];
-        } else {
-            $distance = "";
+        $distance = isset($data['distance']) ? $data['distance'] : "";
+        $time = isset($data['time']) ? $data['time'] : "";
+        $jobid = isset($data['jobid']) ? $data['jobid'] : "";
+        $session = isset($data['session_time']) ? $data['session_time'] : "";
+        $flagged = $data['flagged'] ? "yes" : "no";
+        if ($data['flagged']) {
+            if (!$data['admincomment']) return "Please, add comment";
         }
-        if (isset($data['time']) && $data['time'] != "") {
-            $time = $data['time'];
-        } else {
-            $time = "";
-        }
-        if (isset($data['jobid']) && $data['jobid'] != "") {
-            $jobid = $data['jobid'];
-        }
-
-        if (isset($data['session_time']) && $data['session_time'] != "") {
-            $session = $data['session_time'];
-        } else {
-            $session = "";
-        }
-
-        if ($data['flagged'] == 'true') {
-            if($data['admincomment'] == '') return "Please, add comment";
-            $flagged = 'yes';
-        } else {
-            $flagged = 'no';
-        }
-        
-        if ($data['manually_handled'] == 'true') {
-            $manually_handled = 'yes';
-        } else {
-            $manually_handled = 'no';
-        }
-
-        if ($data['by_admin'] == 'true') {
-            $by_admin = 'yes';
-        } else {
-            $by_admin = 'no';
-        }
-
-        if (isset($data['admincomment']) && $data['admincomment'] != "") {
-            $admincomment = $data['admincomment'];
-        } else {
-            $admincomment = "";
-        }
+        $manually_handled = $data['manually_handled'] ? "yes" : "no";
+        $by_admin = $data['by_admin'] ? "yes" : "no";
+        $admincomment = isset($data['admincomment']) && $data['admincomment'] ? $data['admincomment'] : "";
         if ($time || $distance) {
-
-            $affectedRows = Distance::where('job_id', '=', $jobid)->update(array('distance' => $distance, 'time' => $time));
+            Distance::where('job_id', '=', $jobid)->update(array('distance' => $distance, 'time' => $time));
         }
-
         if ($admincomment || $session || $flagged || $manually_handled || $by_admin) {
-
-            $affectedRows1 = Job::where('id', '=', $jobid)->update(array('admin_comments' => $admincomment, 'flagged' => $flagged, 'session_time' => $session, 'manually_handled' => $manually_handled, 'by_admin' => $by_admin));
-
+            Job::where('id', '=', $jobid)->update(array('admin_comments' => $admincomment, 'flagged' => $flagged, 'session_time' => $session, 'manually_handled' => $manually_handled, 'by_admin' => $by_admin));
         }
-
         return response('Record updated!');
     }
 
-    public function reopen(Request $request)
-    {
-        $data = $request->all();
-        $response = $this->repository->reopen($data);
+    // End here
 
+
+
+    // Refactor here
+    public function reopen(RequestValidate $request)
+    {
+        $response = $this->repository->reopen($request->all());
         return response($response);
     }
+    // End here
 
-    public function resendNotifications(Request $request)
+
+
+
+    // Refactor here
+    public function resendNotifications(RequestValidation $request)
     {
-        $data = $request->all();
-        $job = $this->repository->find($data['jobid']);
+        $job = $this->repository->findorfail($request['jobid']);
         $job_data = $this->repository->jobToData($job);
         $this->repository->sendNotificationTranslator($job, $job_data, '*');
-
         return response(['success' => 'Push sent']);
     }
+
+    // End here
+
+
 
     /**
      * Sends SMS to Translator
      * @param Request $request
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
-    public function resendSMSNotifications(Request $request)
-    {
-        $data = $request->all();
-        $job = $this->repository->find($data['jobid']);
-        $job_data = $this->repository->jobToData($job);
 
+
+    //  Refactor here
+
+    public function resendSMSNotifications(RequeRequestValidationst $request)
+    {
+        $job = $this->repository->find($request['jobid']);
         try {
             $this->repository->sendSMSNotificationToTranslator($job);
             return response(['success' => 'SMS sent']);
         } catch (\Exception $e) {
-            return response(['success' => $e->getMessage()]);
+            return response(['Error' => $e->getMessage()]);
         }
     }
+
+    // End here
 
 }
